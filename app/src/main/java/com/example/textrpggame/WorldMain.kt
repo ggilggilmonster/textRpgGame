@@ -76,7 +76,7 @@ fun main() {
             var myCharacter = Archer(myName, myAge, myGender, myMoney, myHp)
 
             while(true) {
-                println("[1] 슬라임동굴, [2] 좀비마을, [3] 캐쉬샵, [4] 종료")
+                println("[1] 슬라임동굴, [2] 좀비마을, [3] 캐쉬샵, [4] 로또 [5] 종료")
                 var selectNumber= inputMyInfo("selectNumber").toString().toInt()
 
                 when(selectNumber) {
@@ -90,6 +90,10 @@ fun main() {
                         openCashShop(myCharacter)
                     }
                     4 -> {
+                        var selectHorse = inputMyInfo("selectHorse").toString()
+                        startLotto(myCharacter, selectHorse)
+                    }
+                    5 -> {
                         println("게임 종료")
                         break
                     }
@@ -111,20 +115,20 @@ fun displayInfo(worldName:String, myName:String, myAge:Int, myJob:String) {
     println("모험을 떠나 볼까요?")
 }
 
-fun selectWorld(selectWorld:Int, myCharacter: Character) {  // 기존에 selectWorld를 ByArcher 같은 형식으로 구분지었지만 이제는 Character를 부모로 받고
+fun selectWorld(selectWorld:Int, myCharacter: Character) {
     if(selectWorld == 1) { // 슬라임 던전
-        if(myCharacter is Archer) {                         // 얘가 아처 타입이냐
+        if(myCharacter is Archer) {
             var slime1 = Slime("초록슬라임", "초록", 30.2, 200, 10)
             slime1.attack()
-            myCharacter.windArrow()     // 모두 myCharacter로 통일한 장점
+            myCharacter.windArrow()
             slime1.poison()
-        } else if(myCharacter is Wizard) {                  // 위자드 타입이냐에 따라 구분
+        } else if(myCharacter is Wizard) {
             var slime1 = Slime("파랑슬라임", "파랑", 30.2, 200, 10)
             slime1.attack()
-            myCharacter.fireBall()      // 아처인지 위자드인지는 myCharacter에서 구분이되고
+            myCharacter.fireBall()
             slime1.poison()
         }
-    } else if(selectWorld == 2) { // 좀비 던전에서도 마찬가지
+    } else if(selectWorld == 2) { // 좀비 던전
         if(myCharacter is Archer) {
             var zombie1 = Zombie("파랑좀비", "파랑", 142.2, 500, 25)
             zombie1.virus()
@@ -133,7 +137,7 @@ fun selectWorld(selectWorld:Int, myCharacter: Character) {  // 기존에 selectW
         } else if(myCharacter is Wizard) {
             var zombie1 = Zombie("파랑좀비", "파랑", 142.2, 500, 25)
             zombie1.virus()
-            myCharacter.teleport(10, 20)    // fireball()과 teleport()를 트래킹하다 보면 이 객체가 사용하는 변수나 메소드를 다 추적할 수 있겠구나!
+            myCharacter.teleport(10, 20)
         }
 
     }
@@ -253,14 +257,29 @@ fun inputMyInfo(type:String): Any? {
                 }
             }
         }
+        "selectHorse" -> {
+            println("말의 이름을 입력해주세요")
+            while(true) {
+                try {
+                    var originName = readLine()
+                    if(originName?.equals("one") == true || originName?.equals("two") == true) {
+                        return originName
+                    } else {
+                        println("말의 이름을 다시 입력해주세요")
+                    }
+                } catch(e:Exception) {
+                    println("말의 이름을 다시 입력해주세요")
+                }
+            }
+        }
         else -> {
             return "no"
         }
     }
 }
 
-fun openCashShop(character: Character) {    // 얘도 기존에는 By~~로 구분지었지만 Character로 부모 받고
-    var cashShop = CashShop.getInstance()   // 싱글턴으로 Cashshop 엶.
+fun openCashShop(character: Character) {
+    var cashShop = CashShop.getInstance()
 
     if(character is Archer) {
         println("구매전 무기: ${character.weapons}")
@@ -271,4 +290,10 @@ fun openCashShop(character: Character) {    // 얘도 기존에는 By~~로 구�
         cashShop.purchaseWeapon(character)
         println("구매후 무기: ${character.weapons}")
     }
+}
+
+fun startLotto(character: Character, horse: String) {
+    var cashShop = CashShop.getInstance()
+
+    cashShop.startLotto(character, horse)
 }

@@ -1,11 +1,21 @@
 package com.example.textrpggame
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.util.Random
+import kotlin.concurrent.thread
+
 class CashShop private constructor() {
     private val bowPrice = 150
     private val staffPrice = 120
 
-    companion object {
+    companion object {  // object로 돼있는 이유는 말이 두 마리 동시에 달리는데 1등한 말을 공유해야 함.
         @Volatile private var instance: CashShop? = null
+        @Volatile private var lottoStatus: String? = null
+        // 1등을 한 말의 이름을 저장하는 변수. 1등한 말이 없으면 달려야 하고 1등 한 말이 있으면 멈춰야 함. 1등 한 말의 이름을 공통적으로 알아야 함.
+        @Volatile private var isFinish: Boolean? = null
+        // 말 경주가 끝났는지 안 끝났는지(1등이 나왔는지 안 나왔는지)를 판별하기 위해.
 
         fun getInstance(): CashShop {
             // 외부에서 요청왔을때 instance가 null인지 검증
@@ -21,10 +31,10 @@ class CashShop private constructor() {
         }
     }
 
-    fun purchaseWeapon(character:Character){    // 파라미터로 아처나 위자드는 부모 클래스가 Character이므로 업 캐스팅해서 받아옴.
+    fun purchaseWeapon(character:Character){
         if(character is Archer) {
-            character?.run {    // 기존엔 character.~~~~ 해서 지저분했지만 세이프티 연산자와 run을 통해 더욱 직관화 됨.
-                if(money >= bowPrice) {   // character가 this 안에 들어가서 character. 이나 this. 을 안 써도 바로 접근할 수 있게 됨.
+            character?.run {
+                if(money >= bowPrice) {
                     println("[구매 후 금액]: [${money} - ${bowPrice}] = ${money-bowPrice}")
                     money -= bowPrice
                     weapons.add("슈퍼 활")
@@ -45,4 +55,83 @@ class CashShop private constructor() {
         }
     }
 
+    fun startLotto(character: Character, selectHorse: String) { // 외부에서 아처나 위자드 객체를 받아옴. 그리고 그 사람이 선택한 말 이름을 String으로 받아옴.
+        var random = Random()
+        val finalDst = 100
+        isFinish = false
+        thread(start = true) {
+            var currentPosition = 0
+            while(currentPosition < finalDst && isFinish == false) {
+                currentPosition += (random.nextInt(5) + 1)
+                // .nextInt 메소드를 사용하고 파라미터를 5로 넘김. 이렇게 하면 이 메소드 자체로는 0부터 4까지의 숫자를 리턴해주는 메소드. 근데 1을 더했으므로 1부터 5까지 리턴.
+                // 이를 통해 말은 한번에 1미터에서 5미터까지 달릴 수 있다고 정의.
+
+                println("1번말 현재 위치: ${currentPosition}m")
+                runBlocking {
+                    launch {
+                        delay(1000)     // runBlocking, launch를 통해 delay로 1초마다 강제로 쉬게 함.
+                    }
+                }
+            }
+            if(lottoStatus == null || lottoStatus != "two") {
+                lottoStatus = "one"
+                isFinish = true
+                println("1등: ${lottoStatus}말")
+
+                if(lottoStatus.equals(selectHorse)) {
+                    println("축하합니다! 당첨!")
+                    println("상금으로 1만원 지급")
+
+                    // 왜 이렇게밖에 작성했는지 이유를 생각하고
+                    // 코드를 개선하기
+                    if(character is Archer) {
+                        character?.run {
+                            money += 10000
+                        }
+                    } else if(character is Wizard) {
+                        character?.run {
+                            money += 10000
+                        }
+                    }
+                }
+            }
+
+        }
+
+        thread(start = true) {
+            var currentPosition = 0
+            while(currentPosition < finalDst && isFinish == false) {
+                currentPosition += (random.nextInt(10) + 1)
+
+                println("2번말 현재 위치: ${currentPosition}m")
+                runBlocking {
+                    launch {
+                        delay(1000)
+                    }
+                }
+            }
+            if(lottoStatus == null || lottoStatus != "one") {
+                lottoStatus = "two"
+                isFinish = true
+                println("1등: ${lottoStatus}말")
+                if(lottoStatus.equals(selectHorse)) {
+                    println("축하합니다! 당첨!")
+                    println("상금으로 1만원 지급")
+
+                    // 왜 이렇게밖에 작성했는지 이유를 생각하고
+                    // 코드를 개선하기
+                    if(character is Archer) {
+                        character?.run {
+                            money += 10000
+                        }
+                    } else if(character is Wizard) {
+                        character?.run {
+                            money += 10000
+                        }
+                    }
+                }
+            }
+
+        }
+    }
 }
